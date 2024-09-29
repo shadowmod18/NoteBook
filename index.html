@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoteBook</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 10px;
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            transition: color 0.3s;
+        }
+        .note {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            border-radius: 5px;
+            animation: slideIn 0.5s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .note-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .note-content {
+            color: #555;
+        }
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background-color: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .menu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: #007bff;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .modal, .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content, .settings-modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .modal-content input, .modal-content select, .modal-content textarea, .settings-modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .modal-content button, .settings-modal-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .search-bar {
+            width: calc(100% - 60px);
+            padding: 10px;
+            margin: 20px 10px 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+            float: right;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        .dark-mode .container {
+            background-color: #444;
+            color: #fff;
+        }
+        .dark-mode .note {
+            background-color: #555;
+            color: #fff;
+            border-color: #666;
+        }
+        .dark-mode .fab {
+            background-color: #888;
+            color: #fff;
+        }
+        .dark-mode .menu {
+            background-color: #888;
+            color: #fff;
+        }
+        .dark-mode .modal-content, .dark-mode .settings-modal-content {
+            background-color: #444;
+            color: #fff;
+        }
+        .dark-mode .modal-content input, .dark-mode .modal-content select, .dark-mode .modal-content textarea, .dark-mode .settings-modal-content input {
+            background-color: #555;
+            color: #fff;
+            border: 1px solid #666;
+        }
+        .dark-mode .search-bar {
+            background-color: #555;
+            color: #fff;
+            border: 1px solid #666;
+        }
+        .floating-text {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            animation: colorChange 5s infinite;
+        }
+        @keyframes colorChange {
+            0% { color: red; }
+            25% { color: blue; }
+            50% { color: green; }
+            75% { color: orange; }
+            100% { color: red; }
+        }
+    </style>
+</head>
+<body>
+    <div class="menu" onclick="openSettingsModal()">☰</div>
+    <div class="container">
+        <h1 id="siteTitle">NoteBook</h1>
+        <input type="text" class="search-bar" id="searchBar" placeholder="Rechercher une note..." onkeyup="searchNotes()">
+        <div id="notesContainer"></div>
+    </div>
+    <div class="fab" onclick="openModal()">+</div>
+
+    <div class="modal" id="noteModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <input type="text" id="noteTitle" placeholder="Titre de la Note">
+            <input type="text" id="noteCategory" placeholder="Catégorie">
+            <input type="color" id="noteColor" value="#000000">
+            <textarea id="noteContent" placeholder="Contenu de la note..."></textarea>
+            <button onclick="saveNote()">Save</button>
+        </div>
+    </div>
+
+    <div class="settings-modal" id="settingsModal" onclick="closeSettingsModal(event)">
+        <div class="settings-modal-content" onclick="event.stopPropagation()">
+            <label for="theme">Thème :</label>
+            <select id="theme" onchange="changeTheme()">
+                <option value="light">Clair</option>
+                <option value="dark">Sombre</option>
+            </select>
+            <label for="siteColor">Couleur du site :</label>
+            <input type="color" id="siteColor" onchange="changeSiteColor()">
+            <label for="fabColor">Couleur du bouton flottant :</label>
+            <input type="color" id="fabColor" onchange="changeFabColor()">
+            <label for="titleColor">Couleur du titre :</label>
+            <input type="color" id="titleColor" onchange="changeTitleColor()">
+            <label for="searchBarColor">Couleur de la barre de recherche :</label>
+            <input type="color" id="searchBarColor" onchange="changeSearchBarColor()">
+            <label for="searchTextColor">Couleur du texte de la barre de recherche :</label>
+            <input type="color" id="searchTextColor" onchange="changeSearchTextColor()">
+            <button onclick="resetSettings()">Réinitialiser</button>
+        </div>
+    </div>
+
+    <div class="floating-text">
+        Pour revoir votre compte de NoteBook, vous devriez ouvrir le lien là où vous l'avez ouvert pour la première fois.
+    </div>
+
+    <script>
+        let notes = JSON.parse(localStorage.getItem('notes')) || [];
+        let editIndex = -1;
+
+                function openModal() {
+            document.getElementById('noteModal').style.display = 'flex';
+        }
+
+        function closeModal(event) {
+            if (event.target === document.getElementById('noteModal')) {
+                document.getElementById('noteModal').style.display = 'none';
+                document.getElementById('noteTitle').value = '';
+                document.getElementById('noteCategory').value = '';
+                document.getElementById('noteColor').value = '#000000';
+                document.getElementById('noteContent').value = '';
+                editIndex = -1;
+            }
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettingsModal(event) {
+            if (event.target === document.getElementById('settingsModal')) {
+                document.getElementById('settingsModal').style.display = 'none';
+            }
+        }
+
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value;
+            const category = document.getElementById('noteCategory').value;
+            const color = document.getElementById('noteColor').value;
+            const content = document.getElementById('noteContent').value;
+
+            const note = { title, category, color, content };
+
+            if (editIndex === -1) {
+                notes.push(note);
+            } else {
+                notes[editIndex] = note;
+            }
+
+            localStorage.setItem('notes', JSON.stringify(notes));
+            displayNotes();
+            closeModal({ target: document.getElementById('noteModal') });
+        }
+
+        function displayNotes() {
+            const notesContainer = document.getElementById('notesContainer');
+            notesContainer.innerHTML = '';
+
+            notes.forEach((note, index) => {
+                const noteContainer = document.createElement('div');
+                noteContainer.className = 'note';
+                noteContainer.style.borderColor = note.color;
+                noteContainer.onclick = () => editNote(index);
+
+                const noteTitle = document.createElement('div');
+                noteTitle.className = 'note-title';
+                noteTitle.textContent = note.title;
+
+                const noteCategory = document.createElement('div');
+                noteCategory.className = 'note-category';
+                noteCategory.textContent = note.category;
+                noteCategory.style.color = note.color;
+
+                const noteContent = document.createElement('div');
+                noteContent.className = 'note-content';
+                noteContent.textContent = note.content;
+
+                noteContainer.appendChild(noteTitle);
+                noteContainer.appendChild(noteCategory);
+                noteContainer.appendChild(noteContent);
+
+                notesContainer.appendChild(noteContainer);
+            });
+        }
+
+        function editNote(index) {
+            const note = notes[index];
+            document.getElementById('noteTitle').value = note.title;
+            document.getElementById('noteCategory').value = note.category;
+            document.getElementById('noteColor').value = note.color;
+            document.getElementById('noteContent').value = note.content;
+            editIndex = index;
+            openModal();
+        }
+
+        function searchNotes() {
+            const query = document.getElementById('searchBar').value.toLowerCase();
+            const notes = document.querySelectorAll('.note');
+
+            notes.forEach(note => {
+                const title = note.querySelector('.note-title').textContent.toLowerCase();
+                if (title.includes(query)) {
+                    note.style.display = 'block';
+                } else {
+                    note.style.display = 'none';
+                }
+            });
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('theme').value;
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function changeSiteColor() {
+            const color = document.getElementById('siteColor').value;
+            document.querySelector('.container').style.backgroundColor = color;
+            localStorage.setItem('siteColor', color);
+        }
+
+        function changeFabColor() {
+            const color = document.getElementById('fabColor').value;
+            document.querySelector('.fab').style.backgroundColor = color;
+            localStorage.setItem('fabColor', color);
+        }
+
+        function changeTitleColor() {
+            const color = document.getElementById('titleColor').value;
+            document.querySelector('#siteTitle').style.color = color;
+            localStorage.setItem('titleColor', color);
+        }
+
+        function changeSearchBarColor() {
+            const color = document.getElementById('searchBarColor').value;
+            document.querySelector('.search-bar').style.backgroundColor = color;
+            localStorage.setItem('searchBarColor', color);
+        }
+
+        function changeSearchTextColor() {
+            const color = document.getElementById('searchTextColor').value;
+            document.querySelector('.search-bar').style.color = color;
+            localStorage.setItem('searchTextColor', color);
+        }
+
+        function resetSettings() {
+            localStorage.removeItem('theme');
+            localStorage.removeItem('siteColor');
+            localStorage.removeItem('fabColor');
+            localStorage.removeItem('titleColor');
+            localStorage.removeItem('searchBarColor');
+            localStorage.removeItem('searchTextColor');
+            location.reload();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const theme = localStorage.getItem('theme');
+            if (theme) {
+                document.getElementById('theme').value = theme;
+                changeTheme();
+            }
+
+            const siteColor = localStorage.getItem('siteColor');
+            if (siteColor) {
+                document.getElementById('siteColor').value = siteColor;
+                changeSiteColor();
+            }
+
+            const fabColor = localStorage.getItem('fabColor');
+            if (fabColor) {
+                document.getElementById('fabColor').value = fabColor;
+                changeFabColor();
+            }
+
+            const titleColor = localStorage.getItem('titleColor');
+            if (titleColor) {
+                document.getElementById('titleColor').value = titleColor;
+                changeTitleColor();
+            }
+
+            const searchBarColor = localStorage.getItem('searchBarColor');
+            if (searchBarColor) {
+                document.getElementById('searchBarColor').value = searchBarColor;
+                changeSearchBarColor();
+            }
+
+            const searchTextColor = localStorage.getItem('searchTextColor');
+            if (searchTextColor) {
+                document.getElementById('searchTextColor').value = searchTextColor;
+                changeSearchTextColor();
+            }
+
+            displayNotes();
+        });
+    </script>
+</body>
+</html>
